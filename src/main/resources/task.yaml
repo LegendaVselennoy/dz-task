@@ -1,0 +1,257 @@
+openapi: 3.0.3
+info:
+  title: s
+  version: v0
+servers:
+  - url: http://localhost:8080
+    description: Generated server url
+paths:
+  /task/{id}:
+    put:
+      tags:
+        - task-controller
+      operationId: updateTask
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskDTO"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TaskDTO"
+      security:
+        - basicAuth: []
+    delete:
+      tags:
+        - task-controller
+      operationId: deleteTask
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        "200":
+          description: OK
+      security:
+        - basicAuth: []
+  /user/register:
+    post:
+      tags:
+        - customer-controller
+      operationId: createCustomer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Customer"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+  /task:
+    get:
+      tags:
+        - task-controller
+      operationId: getTasksALl
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TaskDTO"
+      security:
+        - basicAuth: []
+    post:
+      tags:
+        - task-controller
+      operationId: saveNewTask
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TaskDTO"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TaskDTO"
+      security:
+        - basicAuth: []
+  /task/patch/{id}:
+    patch:
+      tags:
+        - task-controller
+      operationId: patchTask
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: executor
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RequestEditTask"
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/TaskDTO"
+      security:
+        - basicAuth: []
+  /user:
+    get:
+      tags:
+        - customer-controller
+      operationId: getAllCustomers
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Customer"
+      security:
+        - basicAuth: []
+  /task/{executor}:
+    get:
+      tags:
+        - task-controller
+      operationId: getTaskByExecutor
+      parameters:
+        - name: executor
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: pageNumber
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 1
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TaskDTO"
+      security:
+        - basicAuth: []
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    TaskDTO:
+      required:
+        - executor
+        - heading
+        - priority
+        - status
+      type: object
+      properties:
+        heading:
+          type: string
+        description:
+          maxLength: 25
+          minLength: 10
+          type: string
+        status:
+          type: string
+          enum:
+            - WAITING
+            - PROCESSING
+            - COMPLETED
+        priority:
+          type: string
+          enum:
+            - HIGH
+            - MEDIUM
+            - LOW
+        comment:
+          type: string
+        author:
+          type: string
+        executor:
+          type: string
+    Customer:
+      required:
+        - email
+        - password
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        email:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+          enum:
+            - ROLE_USER
+            - ROLE_ADMIN
+    RequestEditTask:
+      required:
+        - status
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - WAITING
+            - PROCESSING
+            - COMPLETED
+        comment:
+          type: string

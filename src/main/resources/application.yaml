@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: dz-task
+
+  datasource:
+    username: postgres
+    password: ${DB_PASSWORD:postgres}
+    url: jdbc:postgresql://localhost:5432/test
+  jpa:
+   properties:
+    hibernate:
+     show_sql: true
+     format_sql: true
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8180/realms/bank/protocol/openid-connect/certs
