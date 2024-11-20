@@ -1,0 +1,31 @@
+services:
+  app:
+    image: 'dz-task:latest'
+    build:
+      context: ..
+    container_name: app
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/compose-postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_PROFILES_ACTIVE=dev
+    networks:
+      - spring-postgres
+
+  db:
+    image: 'postgres:13.1-alpine'
+    ports:
+      - 5432:5432
+    container_name: db
+    environment:
+      - POSTGRES_DB=compose-postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    networks:
+      - spring-postgres
+networks:
+  spring-postgres:
