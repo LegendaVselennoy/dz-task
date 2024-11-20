@@ -21,7 +21,7 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final TaskMapper taskMapper;
     private final static String TASK_NOT_FOUND = "Task not found";
-    private final static String NO_EDITING_RIGHTS= "No editing rights";
+    private final static String NO_EDITING_RIGHTS = "No editing rights";
     private final static String TASK_WITH_ID_NOT_FOUND = "Task with id [%s] not found";
 
     public TaskDTO patchTask(Long id, RequestEditTask requestEditTask, String executor) {

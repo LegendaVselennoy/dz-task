@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: s
+  title: Task management system operation
   version: v0
 servers:
   - url: http://localhost:8080
@@ -94,8 +94,8 @@ paths:
               $ref: "#/components/schemas/TaskDTO"
         required: true
       responses:
-        "200":
-          description: OK
+        "201":
+          description: isCreated
           content:
             '*/*':
               schema:

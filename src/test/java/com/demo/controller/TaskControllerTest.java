@@ -1,90 +1,93 @@
 package com.demo.controller;
 
+import com.demo.dto.RequestEditTask;
 import com.demo.dto.TaskDTO;
-import com.demo.entity.Task;
 import com.demo.entity.enumerate.Priority;
 import com.demo.entity.enumerate.Status;
-import com.demo.mapper.TaskMapper;
 import com.demo.service.TaskService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = TaskController.class)
 public class TaskControllerTest {
 
-    private static final String TASK_PATH = "/task/";
-    private static final String USERNAME = "admin@yan.com";
-    private static final String PASSWORD = "password";
+    private final static String PATH = "/task";
+    private final static String USERNAME = "admin@demo.com";
+    private final static String PASSWORD = "password";
+    private final static String USER_ROLE = "USER";
+    private final static String ADMIN_ROLE = "ADMIN";
 
     @Autowired
-    MockMvc mockMvc;
-    @Autowired
-    ObjectMapper mapper;
+    private MockMvc mockMvc;
     @MockBean
-    TaskService service;
-    @Mock
-    TaskMapper taskMapper;
+    private TaskService taskService;
     @Autowired
-    WebApplicationContext context;
+    private ObjectMapper mapper = new ObjectMapper();
+    private TaskDTO dto;
 
     @BeforeEach
-    public void setup() {
-        mockMvc = MockMvcBuilders
-                .webAppContextSetup(context)
-                .apply(springSecurity())
+    public void setUp() {
+        dto = TaskDTO.builder()
+                .heading("heading")
+                .description("description")
+                .status(Status.WAITING)
+                .priority(Priority.MEDIUM)
+                .comment("This is a comment for the task")
+                .executor("Executor")
                 .build();
     }
 
     @Test
-    void testCreateTask() throws Exception {
-        Task dto1 = new Task(
-                1L,
-                "heaad",
-                "descrip",
-                Status.PROCESSING,
-                Priority.MEDIUM,
-                "sldlsa;sc,as,d",
-                "Author",
-                "Executor"
-        );
-        TaskDTO dto = taskMapper.taskToTaskDTO(dto1);
-        given(service.createNewTask(any(TaskDTO.class))).willReturn(dto);
+    void patchTaskTest() throws Exception {
+        Long taskId = 1L;
+        String executor = "Executor2";
+        RequestEditTask edit = new RequestEditTask(Status.WAITING, "This is a modified");
 
-         ResultActions response = mockMvc.perform(post(TASK_PATH)
-                        .with(csrf())
-                        .with(user(USERNAME).password(PASSWORD).roles("ADMIN"))
-                .accept(MediaType.APPLICATION_JSON)
+        TaskDTO dtoPatch = TaskDTO
+                .builder()
+                .executor(executor)
+                .status(edit.status())
+                .comment(edit.comment())
+                .build();
+
+        when(taskService.patchTask(taskId, edit, executor)).thenReturn(dtoPatch);
+
+        ResultActions response = mockMvc.perform(patch(PATH + "/patch/" + taskId)
+                .with(csrf())
+                .with(user(USERNAME).password(PASSWORD).roles(USER_ROLE))
+                .queryParam("executor", executor)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(dto)));
+                .content(mapper.writeValueAsString(edit)));
 
-            response
-                    .andExpect(status().isCreated())
+        response.andExpect(status().isOk());
+    }
 
-                    .andExpect(jsonPath("$.heading", is(dto1.getHeading())))
-                    .andExpect(jsonPath("$.description", is(dto1.getDescription())))
-                    .andExpect(jsonPath("$.comment", is(dto1.getComment())))
-                    .andExpect(jsonPath("$.status", is(dto1.getStatus())))
-                    .andExpect(jsonPath("$.priority", is(dto1.getPriority())))
-                    .andExpect(jsonPath("$.executor", is(dto1.getExecutor())));
+    @Test
+    void createTaskTest() throws Exception {
+        given(taskService.createNewTask(any(TaskDTO.class)))
+                .willReturn(dto);
+
+        mockMvc.perform(post(PATH)
+                        .with(csrf())
+                        .with(user(USERNAME).password(PASSWORD).roles(ADMIN_ROLE))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(dto)))
+                .andExpect(status().isCreated());
     }
 }
